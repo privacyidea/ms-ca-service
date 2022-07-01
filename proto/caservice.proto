@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+option csharp_namespace = "Grpc";
+
+// Disposition values:
+// 0 - Incomplete
+// 1 - Error
+// 2 - Denied
+// 3 - Issued
+// 4 - Issued out of band
+// 5 - Under Submission
+
+service CAService {
+	rpc SubmitCSR (SubmitCSRRequest) returns (SubmitCSRReply);
+
+	rpc GetCAs (GetCAsRequest) returns (GetCAsReply);
+	rpc GetCertificate (GetCertificateRequest) returns (GetCertificateReply);
+	rpc GetTemplates (GetTemplatesRequest) returns (GetTemplatesReply);
+	rpc GetCSRStatus (GetCSRStatusRequest) returns (GetCSRStatusReply);
+
+	rpc SetOption (SetOptionRequest) returns (SetOptionReply);
+	rpc GetOptions (GetOptionsRequest) returns (GetOptionsReply);
+}
+
+enum Code {
+	OK = 0;
+	ERROR = 1;
+}
+
+message Status {
+	int32 code = 1;
+	string message = 2;
+}
+
+message SetOptionRequest {
+	string optionName = 1;
+	string optionValue = 2;
+}
+
+message SetOptionReply {
+	Status status = 1;
+}
+
+
+message GetOptionsRequest {
+
+}
+
+message GetOptionsReply {
+	map<string, string> options = 1;
+	Status status = 2;
+}
+
+
+message SubmitCSRRequest {
+	string csr = 1;
+	string templateName = 2;
+	string caName = 3;
+}
+
+message SubmitCSRReply {
+	int32 disposition = 1;
+	string dispositionMessage = 2;
+	int32 requestId = 3;
+	Status status = 5;
+}
+
+
+message GetCAsRequest {
+}
+
+message GetCAsReply {
+	repeated string caNames = 1;
+	Status status = 2;
+}
+
+
+message GetCertificateRequest {
+	string caName = 1;
+	int32 id = 2;
+}
+
+message GetCertificateReply {
+	string cert = 1;
+	Status status = 2;
+}
+
+
+message GetTemplatesRequest {
+	string caName = 1;
+}
+
+message GetTemplatesReply {
+	repeated string templateNames = 1;
+	Status status = 2;
+}
+
+
+message GetCSRStatusRequest {
+	string caName = 1;
+	oneof IDorSerial {
+		int32 certRequestId = 2;
+		string certSerial = 3;
+	}
+}
+
+message GetCSRStatusReply {
+	int32 disposition = 1;
+	string dispositionMessage = 2;
+	Status status = 3;
+}

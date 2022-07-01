@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "worker": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "nativeDebugging": true
+    }
+  }
+}
