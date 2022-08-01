@@ -1,7 +1,8 @@
 https://grpc.io/docs/languages/python/basics/
 
 Install grpc:
-pip install grpcio-tools
+
+`pip install grpcio-tools`
 
 Generate python code from the protofile:
 
