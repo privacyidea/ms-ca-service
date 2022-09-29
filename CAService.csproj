@@ -56,4 +56,10 @@
 	<ItemGroup>
 	  <Protobuf Include="proto\caservice.proto" GrpcServices="Server" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="CERTADMINLib">
+	    <HintPath>CERTADMINLib.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
 </Project>

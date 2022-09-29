@@ -1,11 +1,13 @@
-﻿using CERTCLILib;
+﻿using CERTADMINLib;
+using CERTCLILib;
 using CERTENROLLLib;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Policy;
 
 namespace CAService
 {
-    class CertEnrollLibWrapper
+    class CertOperations
     {
         private const int CC_DEFAULTCONFIG = 0;
         private const int CC_UIPICKCONFIG = 0x1;
@@ -18,9 +20,24 @@ namespace CAService
         private const int CR_OUT_BASE64 = 0x1;
         private const int CR_OUT_CHAIN = 0x100;
 
+        public const int CRL_REASON_UNSPECIFIED = 0;
+        public const int CRL_REASON_KEY_COMPROMISE = 1;
+        public const int CRL_REASON_CA_COMPROMISE = 2;
+        public const int CRL_REASON_AFFILIATION_CHANGED = 3;
+        public const int CRL_REASON_SUPERSEDED = 4;
+        public const int CRL_REASON_CESSATION_OF_OPERATION = 5;
+        public const int CRL_REASON_CERTIFICATE_HOLD = 6;
+
+        // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wcce/ce5b7072-ba61-43ec-8a39-8c4f94e982de
+        public const int CA_DISP_INCOMPLETE = 0x00;
+        public const int CA_DISP_ERROR = 0x01;
+        public const int CA_DISP_REVOKED = 0x02;
+        public const int CA_DISP_VALID = 0x03;
+        public const int CA_DISP_INVALID = 0x04;
+
         private readonly ILogger<PrivacyIDEACAService> _logger;
 
-        public CertEnrollLibWrapper(ILogger<PrivacyIDEACAService> logger)
+        public CertOperations(ILogger<PrivacyIDEACAService> logger)
         {
             _logger = logger;
         }
@@ -49,12 +66,12 @@ namespace CAService
             var objCertRequest = new CCertRequest();
             var dispo = objCertRequest.RetrievePending((int)requestId!, caName);
             return dispo;
-            /*
-            var ccertreq = new CCertRequest();
-            int dispo = ccertreq.GetIssuedCertificate2(caName, Convert.ToString(requestId), certSerial);
-            _logger.LogInformation($"returned dispo: {dispo}");
-            return dispo;
-            */
+        }
+
+        public int GetCertificateValidity(string caName, string serialNumber)
+        {
+            CCertAdmin certAdmin = new();
+            return certAdmin.IsValidCertificate(caName, serialNumber);
         }
 
         public string? GetDispositionMessage()
@@ -71,8 +88,13 @@ namespace CAService
 
             CX509CertificateRequestCmc objCmc = new CX509CertificateRequestCmc();
             objCmc.InitializeFromInnerRequest(objPkcs10);
-            // The requester name is extracted from the original CSR
-            string requesterName = objPkcs10.Subject.Name.Replace("CN=", "");
+            // The requester name is extracted from the original CSR, cuts off after the "," if there is OU= etc appended
+            string tmp = objPkcs10.Subject.Name.Replace("CN=", "");
+            string requesterName = tmp;
+            if (requesterName.IndexOf(",") != -1)
+            {
+                requesterName = tmp[..tmp.IndexOf(",")].TrimEnd();
+            }
             _logger.LogInformation($"Requester Name from CSR: {requesterName}");
             objCmc.RequesterName = requesterName;
 
@@ -178,7 +200,7 @@ namespace CAService
             }
             outputStream.WriteLine("-----END RSA PRIVATE KEY-----");
 
-            return outputStream.ToString();
+            return outputStream.ToString() ?? "";
         }
 
         // from https://stackoverflow.com/a/23739932
@@ -242,6 +264,12 @@ namespace CAService
             }
         }
 
+        internal void RevokeCertificate(string caName, string serialNumber, int reason, DateTime revocationTime)
+        {
+            CCertAdmin certAdmin = new();
+            certAdmin.RevokeCertificate(caName, serialNumber, reason, revocationTime);
+        }
+
         /// <summary>
         /// Submit the CertificateRequest to the speficed CA.
         /// </summary>
@@ -266,7 +294,7 @@ namespace CAService
             // https://docs.microsoft.com/en-us/windows/win32/seccertenroll/cmc-eobo-request
             string actualCSR = CreateEOBOCMCRequest(certificateRequest);
 
-            disposition = objCertRequest.Submit(CR_IN_BASE64HEADER | CR_IN_FORMATANY, actualCSR, attributes, caName);
+            disposition = objCertRequest.Submit(CR_IN_BASE64 | CR_IN_FORMATANY, actualCSR, attributes, caName);
             string dispositionMessage = objCertRequest.GetDispositionMessage();
 
             _logger.LogInformation("Disposition: {disposition}", disposition);

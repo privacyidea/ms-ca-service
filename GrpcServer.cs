@@ -1,5 +1,6 @@
 ﻿using Grpc;
 using Grpc.Core;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -7,22 +8,50 @@ using static Grpc.CAService;
 
 namespace CAService
 {
+    internal class GrpcTraceListener : TraceListener
+    {
+        private readonly ILogger<PrivacyIDEACAService> _logger;
+
+        public GrpcTraceListener(ILogger<PrivacyIDEACAService> logger)
+        {
+            _logger = logger;
+        }
+
+        public override void Write(string? message)
+        {
+            if (message is not null)
+            {
+                _logger.LogInformation("gRPC trace: {message}", message);
+            }
+        }
+
+        public override void WriteLine(string? message)
+        {
+            if (message is not null)
+            {
+                _logger.LogInformation("gRPC trace: {message}", message);
+            }
+        }
+    }
+
     internal class GrpcServer : CAServiceBase
     {
         private Server? _server;
         private readonly ILogger<PrivacyIDEACAService> _logger;
         private LdapOperations _ldapOp;
-        private CertEnrollLibWrapper _certEnroll;
+        private CertOperations _certOps;
 
         public Dictionary<string, string> options = new();
 
         public GrpcServer(ILogger<PrivacyIDEACAService> logger, Settings settings)
         {
             _logger = logger;
-            _certEnroll = new CertEnrollLibWrapper(logger);
+            _certOps = new CertOperations(logger);
 
-            _ldapOp = new LdapOperations(Settings.LDAP_DOMAIN ?? "", Settings.LDAP_SERVER ?? "");
-            _ldapOp._logger = _logger;
+            _ldapOp = new LdapOperations(Settings.LDAP_DOMAIN ?? "", Settings.LDAP_SERVER ?? "")
+            {
+                _logger = _logger
+            };
 
             SetupServer();
         }
@@ -37,12 +66,20 @@ namespace CAService
             return fcollection;
         }
 
+        private X509Certificate2Collection GetCertificateByThumbprint(string thumbprint, StoreName storeName)
+        {
+            X509Store store = new(storeName, StoreLocation.LocalMachine);
+            store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
+            X509Certificate2Collection collection = store.Certificates;
+            var fcollection = collection.Find(X509FindType.FindByThumbprint, thumbprint, true);
+            store.Close();
+            return fcollection;
+        }
+
         private string GetPublicKeyPEM(X509Certificate2 certificate)
         {
-            var publicKey = certificate.PublicKey;
-            var publicKeyBytes = publicKey.ExportSubjectPublicKeyInfo();
-            string pemPublicKey = new(PemEncoding.Write("PUBLIC KEY", publicKeyBytes));
-            return pemPublicKey;
+            var b = certificate.Export(X509ContentType.Cert);
+            return new string(PemEncoding.Write("CERTIFICATE", b));
         }
 
         private void SetupServer()
@@ -59,7 +96,8 @@ namespace CAService
                     return;
                 }
 
-                var caCertCandidates = GetCertificatesFromStore(StoreName.Root, caSubjectName);
+                //var caCertCandidates = GetCertificatesFromStore(StoreName.Root, caSubjectName);
+                var caCertCandidates = GetCertificateByThumbprint(Settings.CA_CERT_THUMBPRINT, StoreName.Root);
                 X509Certificate2? caCert = null;
                 if (caCertCandidates.Count < 1)
                 {
@@ -85,21 +123,22 @@ namespace CAService
                     _logger.LogInformation($"No subjectName configured, aborting server start!");
                     return;
                 }
-                var fcollection = GetCertificatesFromStore(StoreName.My, subjectName);
+                //var serverCertCandidates = GetCertificatesFromStore(StoreName.My, subjectName);
+                var serverCertCandidates = GetCertificateByThumbprint(Settings.SERVER_CERT_THUMBPRINT, StoreName.My);
                 X509Certificate2? serverCert;
-                if (fcollection.Count < 1)
+                if (serverCertCandidates.Count < 1)
                 {
                     _logger.LogInformation($"No certificate found in LocalMachine store for subjectName {subjectName}, aborting server start!");
                     return;
                 }
-                else if (fcollection.Count > 1)
+                else if (serverCertCandidates.Count > 1)
                 {
                     _logger.LogInformation($"Mutliple certificates found in LocalMachine store for subjectName {subjectName}, using first.");
-                    serverCert = fcollection[0];
+                    serverCert = serverCertCandidates[1];
                 }
                 else
                 {
-                    serverCert = fcollection[0];
+                    serverCert = serverCertCandidates[0];
                 }
                 // The server certificate need to contain the private key
                 if (!serverCert.HasPrivateKey)
@@ -112,14 +151,15 @@ namespace CAService
                 string pemPrivateKey = "";
                 if (privateKey is not null)
                 {
+                    //TODO catch
                     var privateKeyBytes = privateKey.ExportPkcs8PrivateKey();
                     pemPrivateKey = new(PemEncoding.Write("PRIVATE KEY", privateKeyBytes));
                 }
 
                 string pemPublicKey = GetPublicKeyPEM(serverCert);
-
                 KeyCertificatePair keypair = new(pemPublicKey, pemPrivateKey);
                 // TODO make this more configurable?
+                _logger.LogInformation($"Credentials for server:\nCA Cert:\n{caCertPEM}\n\nServer Certificate:\n{pemPublicKey}\n\nPrivate Key:\n{pemPrivateKey}");
                 SslClientCertificateRequestType clientReqType = Settings.SERVER_FORCE_CLIENT_AUTH ? SslClientCertificateRequestType.RequestAndRequireAndVerify : SslClientCertificateRequestType.RequestAndVerify;
                 credentials = new SslServerCredentials(new List<KeyCertificatePair>() { keypair }, caCertPEM, clientReqType);
                 _logger.LogInformation("Starting server with secure credentials, forceClientAuth=" + clientReqType.ToString("G"));
@@ -133,11 +173,12 @@ namespace CAService
             {
                 // TODO server credentials
                 Ports = { new ServerPort(Settings.BIND_ADDRESS, Settings.BIND_PORT, credentials) },
-                Services = { BindService(this) }
+                Services = { BindService(this) },
+
             };
             var host = _server.Ports.ElementAt(0).Host;
             var port = _server.Ports.ElementAt(0).Port;
-            _logger.LogInformation($"Starting server at {host} and port {port} in thread {Thread.CurrentThread.ManagedThreadId}");
+            _logger.LogInformation($"Starting server at {host} and port {port} in thread {Environment.CurrentManagedThreadId}");
         }
 
         public void Start()
@@ -150,10 +191,131 @@ namespace CAService
             return _server?.KillAsync();
         }
 
+        public override Task<GetCertificateValidityReply> GetCertificateValidity(GetCertificateValidityRequest request, ServerCallContext context)
+        {
+            _logger.LogInformation("GetCertificateValidity for {serial} from CA {CA}", request.SerialNumber, request.CaName);
+
+            var reply = new GetCertificateValidityReply { Status = new() };
+            if (string.IsNullOrEmpty(request.CaName) || string.IsNullOrEmpty(request.SerialNumber))
+            {
+                string errorMsg = "Missing CA Name or Serial!";
+                _logger.LogError("GetCertificateValidity error: {error}", errorMsg);
+                reply.Status = StatusGenericError(errorMsg);
+                return Task.FromResult(reply);
+            }
+
+            int dispositon = int.MaxValue;
+            try
+            {
+                dispositon = _certOps.GetCertificateValidity(request.CaName, request.SerialNumber);
+            }
+            catch (COMException comex)
+            {
+                _logger.LogError("IsValidCertificate encountered a COMException:\n{error}", comex.StackTrace);
+                reply.Status.Code = comex.ErrorCode;
+                reply.Status.Message = comex.Message;
+                return Task.FromResult(reply);
+            }
+
+            if (Enum.IsDefined(typeof(CertificateValidity), dispositon))
+            {
+                reply.Validity = (CertificateValidity)dispositon;
+            }
+            else
+            {
+                string errorMsg = $"Received unknown certificate dispositon: {dispositon}";
+                _logger.LogError("IsValidCertificate error: {error}", errorMsg);
+                reply.Status = StatusGenericError(errorMsg);
+                return Task.FromResult(reply);
+            }
+
+            _logger.LogInformation("Returning dispositon: {dispositon}", reply.Validity.ToString("G"));
+            return Task.FromResult(reply);
+        }
+
+        public override Task<RevokeCertificateReply> RevokeCertificate(RevokeCertificateRequest request, ServerCallContext context)
+        {
+            _logger.LogInformation($"RevokeCertificate from CA {request.CaName} with serial {request.SerialNumber} for reason {request.Reason} at time {request.Date}");
+
+            var reply = new RevokeCertificateReply { Status = new() };
+
+            if (string.IsNullOrEmpty(request.CaName) || string.IsNullOrEmpty(request.SerialNumber))
+            {
+                string errorMsg = "Missing CA Name or Serial for revocation!";
+                _logger.LogError("RevokeCertificate error: {error}", errorMsg);
+                reply.Status = StatusGenericError(errorMsg);
+                return Task.FromResult(reply);
+            }
+
+            // Convert revocation reason and date in usable formats
+            (int reason, string desc) = ResolveRevocationReason(request.Reason);
+            if (reason > 6)
+            {
+                string errorMsg = $"Invalid revocation reason: {reason}";
+                _logger.LogError(errorMsg);
+                reply.Status = StatusGenericError(errorMsg);
+                return Task.FromResult(reply);
+            }
+
+            DateTime revocationTime = DateTime.Now;
+            if (request.Date != 0)
+            {
+                revocationTime = DateTimeOffset.FromUnixTimeMilliseconds(request.Date).DateTime;
+                if (revocationTime < DateTime.Now)
+                {
+                    string errorMsg = $"Revocation time in the past: {revocationTime}";
+                    _logger.LogError(errorMsg);
+                    reply.Status = StatusGenericError(errorMsg);
+                    return Task.FromResult(reply);
+                }
+            }
+
+            _logger.LogInformation("Revoking certificate at {revocationTime} for reason {desc}", revocationTime, desc);
+            
+            try
+            {
+                _certOps.RevokeCertificate(request.CaName, request.SerialNumber, reason, revocationTime);
+            }
+            catch (COMException comex)
+            {
+                _logger.LogError("RevokeCertificate encountered a COMException:\n{error}", comex.StackTrace);
+                reply.Status.Code = comex.ErrorCode;
+                reply.Status.Message = comex.Message;
+                return Task.FromResult(reply);
+            }
+
+
+            return Task.FromResult(reply);
+        }
+
+        private Grpc.Status StatusGenericError(string msg)
+        {
+            return new()
+            {
+                Code = 1,
+                Message = msg
+            };
+        }
+
+        private (int, string) ResolveRevocationReason(RevokationReason reason)
+        {
+            switch (reason)
+            {
+                case RevokationReason.Unspecified: return (CertOperations.CRL_REASON_UNSPECIFIED, "CRL_REASON_UNSPECIFIED");
+                case RevokationReason.KeyCompromise: return (CertOperations.CRL_REASON_KEY_COMPROMISE, "CRL_REASON_KEY_COMPROMISE");
+                case RevokationReason.CaCompromise: return (CertOperations.CRL_REASON_CA_COMPROMISE, "CRL_REASON_CA_COMPROMISE");
+                case RevokationReason.AffiliationChanged: return (CertOperations.CRL_REASON_AFFILIATION_CHANGED, "CRL_REASON_AFFILIATION_CHANGED");
+                case RevokationReason.Superseded: return (CertOperations.CRL_REASON_SUPERSEDED, "CRL_REASON_SUPERSEDED");
+                case RevokationReason.CessationOfOperation: return (CertOperations.CRL_REASON_CESSATION_OF_OPERATION, "CRL_REASON_CESSATION_OF_OPERATION");
+                case RevokationReason.CertificateHold: return (CertOperations.CRL_REASON_CERTIFICATE_HOLD, "CRL_REASON_CERTIFICATE_HOLD");
+            }
+            _logger.LogInformation($"No match found for revocation reason {reason:G}");
+            return (int.MaxValue, "");
+        }
+
         public override Task<GetTemplatesReply> GetTemplates(GetTemplatesRequest request, ServerCallContext context)
         {
             _logger.LogInformation("GetTemplates");
-
             var reply = new GetTemplatesReply
             {
                 Status = new()
@@ -232,7 +394,7 @@ namespace CAService
             string? cert;
             try
             {
-                cert = _certEnroll.DownloadCert(request.CaName, id);
+                cert = _certOps.DownloadCert(request.CaName, id);
             }
             catch (COMException comex)
             {
@@ -276,7 +438,7 @@ namespace CAService
             }
             try
             {
-                reply.Disposition = _certEnroll.GetRequestStatus(request.CertRequestId, null, request.CaName);
+                reply.Disposition = _certOps.GetRequestStatus(request.CertRequestId, null, request.CaName);
             }
             catch (COMException comex)
             {
@@ -293,7 +455,7 @@ namespace CAService
                 return Task.FromResult(reply);
             }
 
-            reply.DispositionMessage = _certEnroll.GetDispositionMessage() ?? "";
+            reply.DispositionMessage = _certOps.GetDispositionMessage() ?? "";
             _logger.LogInformation($"Returning dispositon {reply.Disposition}");
             return Task.FromResult(reply);
         }
@@ -333,11 +495,12 @@ namespace CAService
             CertSubmissionResult ret;
             try
             {
-                ret = _certEnroll.SendCertificateRequest(request.CaName, request.Csr, templateName: request.TemplateName);
+                ret = _certOps.SendCertificateRequest(request.CaName, request.Csr, templateName: request.TemplateName);
             }
             catch (COMException comex)
             {
                 _logger.LogError($"SendCertificateRequest encountered a COMException:\n{comex.StackTrace}");
+                _logger.LogError($"Error code:{comex.ErrorCode}, error message: {comex.Message}");
                 reply.Status.Code = comex.ErrorCode;
                 reply.Status.Message = comex.Message;
                 return Task.FromResult(reply);

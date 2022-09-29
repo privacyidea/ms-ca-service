@@ -15,11 +15,10 @@ public class PrivacyIDEACAService : BackgroundService
         Settings settings = new(_logger);
         Thread t = new(RunGrpcServer);
         t.Start(settings);
-        _logger.LogInformation($"Worker starting at: {DateTimeOffset.Now} in thread {Thread.CurrentThread.ManagedThreadId}");
+        _logger.LogInformation($"Worker starting at: {DateTimeOffset.Now} in thread {Environment.CurrentManagedThreadId}");
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            //_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
             await Task.Delay(1000, stoppingToken);
         }
 
@@ -32,15 +31,14 @@ public class PrivacyIDEACAService : BackgroundService
             }
         }
         
-        _logger.LogInformation("Stopping grpc server...");
-        //await server.Stop();
+        _logger.LogInformation("gRPC server stopped.");
     }
 
     private void RunGrpcServer(object? settings)
     {
-        if (settings is not null and Settings)
+        if (settings is Settings s)
         {
-            _grpcServer = new GrpcServer(_logger, (Settings)settings);
+            _grpcServer = new GrpcServer(_logger, s);
             _grpcServer.Start();
         }
         else

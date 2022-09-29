@@ -27,6 +27,7 @@ namespace CAService
 
         string domain;
         string ldapServer;
+        // TODO fix this vvv
         public ILogger<PrivacyIDEACAService>? _logger;
 
         public LdapOperations(string domain = "", string ldapServer = "")
@@ -218,7 +219,7 @@ namespace CAService
             // Container location per MS-WCCE 2.2.2.11.1 Certificates Templates Container
             // - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wcce/9279abb2-3dfa-4631-845c-43c187ac4b44
             string path = $"LDAP://{ldapServer}CN=Certificate Templates,CN=Public Key Services,CN=Services,{ConfigurationPath}";
-            _logger.LogInformation($"GetTemplates with path {path}");
+            _logger?.LogInformation($"GetTemplates with path {path}");
             var root = new DirectoryEntry(path);
             var ds = new DirectorySearcher(root)
             {
