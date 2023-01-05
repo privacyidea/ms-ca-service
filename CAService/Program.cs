@@ -1,5 +1,4 @@
 using CAService;
-using System.Diagnostics;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
@@ -13,9 +12,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     })
     .ConfigureLogging(logging =>
     {
-       //logging.AddFilter("Grpc", LogLevel.Debug);
-        logging.AddFile("Logs/{Date}.txt", outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message} {NewLine}{Exception}");
-        //logging.AddProvider()
+        logging.AddFile(Settings.LOG_FILE_PATH + "\\{Date}.txt", outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message} {NewLine}{Exception}");
     })
     .Build();
 

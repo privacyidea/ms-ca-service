@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Fragment>
+        <DirectoryRef Id="INSTALLFOLDER">
+            <Component Id="cmpA0863526952F7834E7C922F065E4C8A8" Guid="*">
+                <File Id="filC04B02D0CCC2D5CCC1013B35DE86DB29" KeyPath="yes" Source="$(var.HarvestPath)\appsettings.Development.json" />
+            </Component>
+            <Component Id="cmpF82FCA80BBAF44D285C97F10993DEEE6" Guid="*">
+                <File Id="fil840B80AC19861C7F9F04FBDCFAE331CE" KeyPath="yes" Source="$(var.HarvestPath)\appsettings.json" />
+            </Component>
+            <Component Id="cmp9A372768F6FC5DDEDCF4AE49800BD37B" Guid="*">
+                <File Id="fil375601E630D0EAFB85828F6E11028F4A" KeyPath="yes" Source="$(var.HarvestPath)\CAService.deps.json" />
+            </Component>
+            <Component Id="cmp46C405096A61750031257BA531D833EB" Guid="*">
+                <File Id="fil5E1ED475E47129E0FA460B60B4288693" KeyPath="yes" Source="$(var.HarvestPath)\CAService.dll" />
+            </Component>
+            <Component Id="cmpD0B6E33C3599B972F5D408C298BF7093" Guid="*">
+                <File Id="fil3D65072E5F252DDA6CD0CDA00C0A4519" KeyPath="yes" Source="$(var.HarvestPath)\CAService.runtimeconfig.json" />
+            </Component>
+            <Component Id="cmp0E8DB3776A9DBD0EB15F1A7F328ED9C7" Guid="*">
+                <File Id="filEBD943A5ABCCE43B559AA99F636B26C3" KeyPath="yes" Source="$(var.HarvestPath)\CERTADMINLib.dll" />
+            </Component>
+            <Component Id="cmp2B62C064A3ED6A94B47BE64C5EB82D9E" Guid="*">
+                <File Id="fil627F933A2694B1BED9FD06B5FDD52C93" KeyPath="yes" Source="$(var.HarvestPath)\Google.Protobuf.dll" />
+            </Component>
+            <Component Id="cmpAD5EBB392A1420D45D001D2850650946" Guid="*">
+                <File Id="filEE9BA4D96BE0093FF4E7CEA4BE7BE34B" KeyPath="yes" Source="$(var.HarvestPath)\Grpc.AspNetCore.Server.ClientFactory.dll" />
+            </Component>
+            <Component Id="cmp332F189ABE775FB6B2F44FCB7028B9C6" Guid="*">
+                <File Id="fil2A0E9EDA788BA4ED9847D51516B16EBE" KeyPath="yes" Source="$(var.HarvestPath)\Grpc.AspNetCore.Server.dll" />
+            </Component>
+            <Component Id="cmp7530465017BB74DDEEFF284B43AFA164" Guid="*">
+                <File Id="filF3F51DFF9B4F49FA9BB94AD074AA7F28" KeyPath="yes" Source="$(var.HarvestPath)\Grpc.Core.Api.dll" />
+            </Component>
+            <Component Id="cmp75EBA543BB346874AD9E238CF33E1BDE" Guid="*">
+                <File Id="fil19C65C7B061D677326FDD17149BA1449" KeyPath="yes" Source="$(var.HarvestPath)\Grpc.Core.dll" />
+            </Component>
+            <Component Id="cmp301336F2D44076B758CAAEAEFFD98B4B" Guid="*">
+                <File Id="fil645F9138B236FAA537DC09760E5BB73A" KeyPath="yes" Source="$(var.HarvestPath)\Grpc.Net.Client.dll" />
+            </Component>
+            <Component Id="cmp3F2D05E350EB9478FD924CAC5B831615" Guid="*">
+                <File Id="fil7C198514ED939410623816809E79B976" KeyPath="yes" Source="$(var.HarvestPath)\Grpc.Net.ClientFactory.dll" />
+            </Component>
+            <Component Id="cmpD5921CC73D3D7D96B18ADAC140DDDBF5" Guid="*">
+                <File Id="fil61C6E628E74343C95130875F07EFF332" KeyPath="yes" Source="$(var.HarvestPath)\Grpc.Net.Common.dll" />
+            </Component>
+            <Component Id="cmpAF2B6DABD5B99532D804E13BB969CAFC" Guid="*">
+                <File Id="filCC7BD5732504FF2213960EB17EF3C644" KeyPath="yes" Source="$(var.HarvestPath)\grpc_csharp_ext.x64.dll" />
+            </Component>
+            <Component Id="cmpFD16E629F3B1C17887ACD3B97583CB13" Guid="*">
+                <File Id="filEFB595E81CA62CF58EF39208C76F7F06" KeyPath="yes" Source="$(var.HarvestPath)\Microsoft.Extensions.Hosting.WindowsServices.dll" />
+            </Component>
+            <Component Id="cmp16861E24C897764CA922EC062BA74EC9" Guid="*">
+                <File Id="filD8E300ACBEFE74B5C24D4D06DCE96AAC" KeyPath="yes" Source="$(var.HarvestPath)\Microsoft.Win32.SystemEvents.dll" />
+            </Component>
+            <Component Id="cmp74A2C73F11C177073B0A672936A0D5EB" Guid="*">
+                <File Id="fil1CF141D24266A4E5F331DDFE02166A27" KeyPath="yes" Source="$(var.HarvestPath)\Serilog.dll" />
+            </Component>
+            <Component Id="cmpA9CD02E2996345805AE749B403FD0E7A" Guid="*">
+                <File Id="fil56CB5FAFD9298B97D060AE19F2DB1B10" KeyPath="yes" Source="$(var.HarvestPath)\Serilog.Extensions.Logging.dll" />
+            </Component>
+            <Component Id="cmp30DD796238C9131D3CB69BCE5AFA33AB" Guid="*">
+                <File Id="filA205747B034264D95A2F62B13B1DB2D0" KeyPath="yes" Source="$(var.HarvestPath)\Serilog.Extensions.Logging.File.dll" />
+            </Component>
+            <Component Id="cmpC08CEB1C24E4A6DA79EE83CFD8BDCD60" Guid="*">
+                <File Id="filD89F64F083730E2B8CC0DEE7002EF506" KeyPath="yes" Source="$(var.HarvestPath)\Serilog.Formatting.Compact.dll" />
+            </Component>
+            <Component Id="cmp2D398587B1AB8167CBB6AADE02FE9765" Guid="*">
+                <File Id="fil78B4F8B0C3BD4574C224C0BF800866AE" KeyPath="yes" Source="$(var.HarvestPath)\Serilog.Sinks.Async.dll" />
+            </Component>
+            <Component Id="cmp49818C715FF04B8E95F7B53BDDD323EF" Guid="*">
+                <File Id="fil1A12B15365165DDBE60433B150808BEE" KeyPath="yes" Source="$(var.HarvestPath)\Serilog.Sinks.File.dll" />
+            </Component>
+            <Component Id="cmp5F1AA7FFD17911A668851FA15EE0CD1E" Guid="*">
+                <File Id="fil6DF069D04BE2DE8E81DEBB4B1DE25568" KeyPath="yes" Source="$(var.HarvestPath)\Serilog.Sinks.RollingFile.dll" />
+            </Component>
+            <Component Id="cmpAD5C11A981D4344E85B848FADA08BC7A" Guid="*">
+                <File Id="filB96A273004D67264028A0882F910C6E9" KeyPath="yes" Source="$(var.HarvestPath)\System.DirectoryServices.dll" />
+            </Component>
+            <Component Id="cmp08EBD8C605FF27A4F0FCEC5A1317087B" Guid="*">
+                <File Id="fil01C46D7B4C6F372B6DD0D0DC961DAE47" KeyPath="yes" Source="$(var.HarvestPath)\System.Drawing.Common.dll" />
+            </Component>
+            <Component Id="cmp5CC6136D6E2A90DE115411181360DDDC" Guid="*">
+                <File Id="fil207371132F5873BD864FD57447824213" KeyPath="yes" Source="$(var.HarvestPath)\System.Security.Permissions.dll" />
+            </Component>
+            <Component Id="cmp3C5190B580EDFB87D0BC5E835BB950DE" Guid="*">
+                <File Id="fil0B6369FF78F990F18A525D5F0CC6D1AB" KeyPath="yes" Source="$(var.HarvestPath)\System.ServiceProcess.ServiceController.dll" />
+            </Component>
+            <Component Id="cmp7A71D580195DAAACCB57D588C484657A" Guid="*">
+                <File Id="fil00EFB213307938756EDF494BE5BB3249" KeyPath="yes" Source="$(var.HarvestPath)\System.Windows.Extensions.dll" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+    <Fragment>
+        <ComponentGroup Id="HeatGenerated">
+            <ComponentRef Id="cmpA0863526952F7834E7C922F065E4C8A8" />
+            <ComponentRef Id="cmpF82FCA80BBAF44D285C97F10993DEEE6" />
+            <ComponentRef Id="cmp9A372768F6FC5DDEDCF4AE49800BD37B" />
+            <ComponentRef Id="cmp46C405096A61750031257BA531D833EB" />
+            <ComponentRef Id="cmpD0B6E33C3599B972F5D408C298BF7093" />
+            <ComponentRef Id="cmp0E8DB3776A9DBD0EB15F1A7F328ED9C7" />
+            <ComponentRef Id="cmp2B62C064A3ED6A94B47BE64C5EB82D9E" />
+            <ComponentRef Id="cmpAD5EBB392A1420D45D001D2850650946" />
+            <ComponentRef Id="cmp332F189ABE775FB6B2F44FCB7028B9C6" />
+            <ComponentRef Id="cmp7530465017BB74DDEEFF284B43AFA164" />
+            <ComponentRef Id="cmp75EBA543BB346874AD9E238CF33E1BDE" />
+            <ComponentRef Id="cmp301336F2D44076B758CAAEAEFFD98B4B" />
+            <ComponentRef Id="cmp3F2D05E350EB9478FD924CAC5B831615" />
+            <ComponentRef Id="cmpD5921CC73D3D7D96B18ADAC140DDDBF5" />
+            <ComponentRef Id="cmpAF2B6DABD5B99532D804E13BB969CAFC" />
+            <ComponentRef Id="cmpFD16E629F3B1C17887ACD3B97583CB13" />
+            <ComponentRef Id="cmp16861E24C897764CA922EC062BA74EC9" />
+            <ComponentRef Id="cmp74A2C73F11C177073B0A672936A0D5EB" />
+            <ComponentRef Id="cmpA9CD02E2996345805AE749B403FD0E7A" />
+            <ComponentRef Id="cmp30DD796238C9131D3CB69BCE5AFA33AB" />
+            <ComponentRef Id="cmpC08CEB1C24E4A6DA79EE83CFD8BDCD60" />
+            <ComponentRef Id="cmp2D398587B1AB8167CBB6AADE02FE9765" />
+            <ComponentRef Id="cmp49818C715FF04B8E95F7B53BDDD323EF" />
+            <ComponentRef Id="cmp5F1AA7FFD17911A668851FA15EE0CD1E" />
+            <ComponentRef Id="cmpAD5C11A981D4344E85B848FADA08BC7A" />
+            <ComponentRef Id="cmp08EBD8C605FF27A4F0FCEC5A1317087B" />
+            <ComponentRef Id="cmp5CC6136D6E2A90DE115411181360DDDC" />
+            <ComponentRef Id="cmp3C5190B580EDFB87D0BC5E835BB950DE" />
+            <ComponentRef Id="cmp7A71D580195DAAACCB57D588C484657A" />
+        </ComponentGroup>
+    </Fragment>
+</Wix>

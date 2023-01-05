@@ -5,11 +5,12 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>dotnet-worker-DF49972C-8767-46B7-9393-D03C57A62ABC</UserSecretsId>
-		<OutputType>exe</OutputType>
+		<OutputType>WinExe</OutputType>
 		<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<PlatformTarget>x64</PlatformTarget>
 		<ApplicationIcon>privacyidea_logo.ico</ApplicationIcon>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -12,7 +12,7 @@ namespace CAService
     // from https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-crtd/1192823c-d839-4bc3-9b6b-fa8c53507ae1
     // and from certutil.exe -v -dstemplate
     [Flags]
-    public enum msPKICertificateNameFlag : uint
+    public enum MsPKICertificateNameFlag : uint
     {
         ENROLLEE_SUPPLIES_SUBJECT = 0x00000001,
         ADD_EMAIL = 0x00000002,
@@ -35,7 +35,7 @@ namespace CAService
     // from https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-crtd/ec71fd43-61c2-407b-83c9-b52272dec8a1
     // and from certutil.exe -v -dstemplate
     [Flags]
-    public enum msPKIEnrollmentFlag : uint
+    public enum MsPKIEnrollmentFlag : uint
     {
         NONE = 0x00000000,
         INCLUDE_SYMMETRIC_ALGORITHMS = 0x00000001,
@@ -111,8 +111,8 @@ namespace CAService
         public string? ValidityPeriod { get; }
         public string? RenewalPeriod { get; }
         public Oid? Oid { get; }
-        public msPKICertificateNameFlag? CertificateNameFlag { get; }
-        public msPKIEnrollmentFlag? EnrollmentFlag { get; }
+        public MsPKICertificateNameFlag? CertificateNameFlag { get; }
+        public MsPKIEnrollmentFlag? EnrollmentFlag { get; }
         public IEnumerable<string>? ExtendedKeyUsage { get; }
         public int? AuthorizedSignatures { get; }
         public IEnumerable<string>? ApplicationPolicies { get; }
@@ -143,8 +143,8 @@ namespace CAService
             IssuancePolicies = template.IssuancePolicies;
             CertificateApplicationPolicies = template.ApplicationPolicies;
 
-            var requiresManagerApproval = template.EnrollmentFlag != null && ((msPKIEnrollmentFlag)template.EnrollmentFlag).HasFlag(msPKIEnrollmentFlag.PEND_ALL_REQUESTS);
-            var enrolleeSuppliesSubject = template.CertificateNameFlag != null && ((msPKICertificateNameFlag)template.CertificateNameFlag).HasFlag(msPKICertificateNameFlag.ENROLLEE_SUPPLIES_SUBJECT);
+            var requiresManagerApproval = template.EnrollmentFlag != null && ((MsPKIEnrollmentFlag)template.EnrollmentFlag).HasFlag(MsPKIEnrollmentFlag.PEND_ALL_REQUESTS);
+            var enrolleeSuppliesSubject = template.CertificateNameFlag != null && ((MsPKICertificateNameFlag)template.CertificateNameFlag).HasFlag(MsPKICertificateNameFlag.ENROLLEE_SUPPLIES_SUBJECT);
 
             RequiresManagerApproval = requiresManagerApproval;
             EnrolleeSuppliesSubject = enrolleeSuppliesSubject;
@@ -162,7 +162,7 @@ namespace CAService
 
     public class CertificateTemplate : ADObject
     {
-        public CertificateTemplate(string distinguishedName, string? name, string? domainName, Guid? guid, int? schemaVersion, string? displayName, string? validityPeriod, string? renewalPeriod, Oid? oid, msPKICertificateNameFlag? certificateNameFlag, msPKIEnrollmentFlag? enrollmentFlag, IEnumerable<string>? extendedKeyUsage, int? authorizedSignatures, IEnumerable<string>? raApplicationPolicies, IEnumerable<string>? issuancePolicies, ActiveDirectorySecurity? securityDescriptor, IEnumerable<string>? applicationPolicies)
+        public CertificateTemplate(string distinguishedName, string? name, string? domainName, Guid? guid, int? schemaVersion, string? displayName, string? validityPeriod, string? renewalPeriod, Oid? oid, MsPKICertificateNameFlag? certificateNameFlag, MsPKIEnrollmentFlag? enrollmentFlag, IEnumerable<string>? extendedKeyUsage, int? authorizedSignatures, IEnumerable<string>? raApplicationPolicies, IEnumerable<string>? issuancePolicies, ActiveDirectorySecurity? securityDescriptor, IEnumerable<string>? applicationPolicies)
             : base(distinguishedName, securityDescriptor)
         {
             Name = name;
@@ -190,8 +190,8 @@ namespace CAService
         public string? ValidityPeriod { get; }
         public string? RenewalPeriod { get; }
         public Oid? Oid { get; }
-        public msPKICertificateNameFlag? CertificateNameFlag { get; }
-        public msPKIEnrollmentFlag? EnrollmentFlag { get; }
+        public MsPKICertificateNameFlag? CertificateNameFlag { get; }
+        public MsPKIEnrollmentFlag? EnrollmentFlag { get; }
         public IEnumerable<string>? ExtendedKeyUsage { get; }
         public int? AuthorizedSignatures { get; }
         public IEnumerable<string>? RaApplicationPolicies { get; }

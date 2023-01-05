@@ -14,21 +14,16 @@ namespace CAService
         {
             get
             {
-                if (_configurationPath == null)
-                {
-                    _configurationPath = GetConfigurationPath();
-                }
-
+                _configurationPath ??= GetConfigurationPath();
                 return _configurationPath;
             }
 
             set => _configurationPath = value;
         }
 
-        string domain;
-        string ldapServer;
-        // TODO fix this vvv
-        public ILogger<PrivacyIDEACAService>? _logger;
+        readonly string domain;
+        readonly string ldapServer;
+        public LogWrapper? _logger;
 
         public LdapOperations(string domain = "", string ldapServer = "")
         {
@@ -55,77 +50,11 @@ namespace CAService
             }
             catch (Exception ex)
             {
-                _logger?.LogInformation($"Error while getting configuration naming context from RootDSE:\n{ex.StackTrace}");
+                _logger?.Log($"Error while getting configuration naming context from RootDSE:\n{ex.StackTrace}");
             }
 
             return str;
         }
-
-        public IEnumerable<PKIObject> GetPKIObjects()
-        {
-            var pkiObjects = new List<PKIObject>();
-
-            // Container location per MS-WCCE 2.2.2.11.2 Enrollment Services Container
-            // - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wcce/3ec073ec-9b91-4bee-964e-56f22a93a28c
-            var root = new DirectoryEntry($"LDAP://{ldapServer}CN=Public Key Services,CN=Services,{ConfigurationPath}");
-
-            var ds = new DirectorySearcher(root)
-            {
-                SecurityMasks = SecurityMasks.Dacl | SecurityMasks.Owner
-            };
-
-            var results = ds.FindAll();
-
-            foreach (SearchResult sr in results)
-            {
-                var name = ParseName(sr);
-                var domainName = ParseDomainName(sr);
-                var distinguishedName = sr.Path;
-                var sd = ParseSecurityDescriptor(sr);
-
-                var pkiObject = new PKIObject(name, domainName, distinguishedName, sd);
-                pkiObjects.Add(pkiObject);
-            }
-
-            // now we want to also find/enumerate the ACLs on all systems hosting CAs
-            var enterpriseCAs = GetEnterpriseCAs();
-            if (enterpriseCAs.Any())
-            {
-                var caDNSnames = new List<string>();
-                foreach (var enterpriseCA in enterpriseCAs)
-                {
-                    caDNSnames.Add($"(dnshostname={enterpriseCA.DnsHostname})");
-                }
-                var caNameFilter = $"(|{string.Join("", caDNSnames)})";
-
-                var caDS = new DirectorySearcher()
-                {
-                    SecurityMasks = SecurityMasks.Dacl | SecurityMasks.Owner,
-                    Filter = caNameFilter
-                };
-                var caResults = caDS.FindAll();
-
-                foreach (SearchResult sr in caResults)
-                {
-                    var name = ParseSamAccountName(sr);
-                    var domainName = ParseDomainName(sr);
-                    var distinguishedName = sr.Path;
-                    var sd = ParseSecurityDescriptor(sr);
-
-                    var pkiObject = new PKIObject(
-                        name,
-                        domainName,
-                        distinguishedName,
-                        sd
-                    );
-
-                    pkiObjects.Add(pkiObject);
-                }
-            }
-
-            return pkiObjects;
-        }
-
 
         public IEnumerable<EnterpriseCertificateAuthority> GetEnterpriseCAs(string? caName = null)
         {
@@ -140,7 +69,7 @@ namespace CAService
             else
             {
                 var parts = caName.Split('\\');
-                var caSimpleName = parts[parts.Length - 1];
+                var caSimpleName = parts[^1];
                 ds.Filter = $"(&(objectCategory=pKIEnrollmentService)(name={caSimpleName}))";
             }
 
@@ -180,38 +109,6 @@ namespace CAService
             return cas;
         }
 
-
-        public CertificateAuthority GetNtAuthCertificates()
-        {
-            // Container location per MS-WCCE 2.2.2.11.3 NTAuthCertificates Object
-            // - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wcce/f1004c63-8508-43b5-9b0b-ee7880183745
-            var root = new DirectoryEntry($"LDAP://{ldapServer}CN=NTAuthCertificates,CN=Public Key Services,CN=Services,{ConfigurationPath}");
-            var ds = new DirectorySearcher(root);
-            ds.Filter = "(objectClass=certificationAuthority)";
-
-            var results = ds.FindAll();
-
-            if (results.Count != 1) throw new Exception("More than one NTAuthCertificate object found");
-
-            var sr = results[0];
-
-            var name = ParseName(sr);
-            var domainName = ParseDomainName(sr);
-            var guid = ParseGuid(sr);
-            var sd = ParseSecurityDescriptor(sr);
-            var certs = ParseCaCertificate(sr);
-
-            return new CertificateAuthority(
-                sr.Path,
-                name,
-                domainName,
-                guid,
-                null,
-                certs,
-                sd
-            );
-        }
-
         public IEnumerable<CertificateTemplate> GetCertificateTemplates()
         {
             var templates = new List<CertificateTemplate>();
@@ -219,7 +116,7 @@ namespace CAService
             // Container location per MS-WCCE 2.2.2.11.1 Certificates Templates Container
             // - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wcce/9279abb2-3dfa-4631-845c-43c187ac4b44
             string path = $"LDAP://{ldapServer}CN=Certificate Templates,CN=Public Key Services,CN=Services,{ConfigurationPath}";
-            _logger?.LogInformation($"GetTemplates with path {path}");
+            _logger?.Log($"GetTemplates with path {path}");
             var root = new DirectoryEntry(path);
             var ds = new DirectorySearcher(root)
             {
@@ -280,47 +177,6 @@ namespace CAService
             return templates;
         }
 
-
-        public List<CertificateAuthority> GetRootCAs()
-        {
-            var cas = new List<CertificateAuthority>();
-
-            // Container location per MS-WCCE 2.2.2.11.4 Certification Authorities Container
-            // - https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-wcce/6c446198-f670-4885-97a9-cbc50a2b96b4
-            string path = $"LDAP://{ldapServer}CN=Certification Authorities,CN=Public Key Services,CN=Services,{ConfigurationPath}";
-            //_logger?.LogInformation($"GetCAs with path {path}");
-            var root = new DirectoryEntry(path);
-            var ds = new DirectorySearcher(root);
-
-            ds.Filter = "(objectCategory=certificationAuthority)";
-
-            var results = ds.FindAll();
-
-            foreach (SearchResult sr in results)
-            {
-                var name = ParseName(sr);
-                var domainName = ParseDomainName(sr);
-                var guid = ParseGuid(sr);
-                var sd = ParseSecurityDescriptor(sr);
-                var certs = ParseCaCertificate(sr);
-
-                var ca = new CertificateAuthority(
-                    sr.Path,
-                    name,
-                    domainName,
-                    guid,
-                    null,
-                    certs,
-                    sd
-                );
-
-                cas.Add(ca);
-            }
-
-            return cas;
-        }
-
-
         private static PkiCertificateAuthorityFlags? ParsePkiCertificateAuthorityFlags(SearchResult sr)
         {
             if (!sr.Properties.Contains("flags"))
@@ -329,7 +185,6 @@ namespace CAService
             return (PkiCertificateAuthorityFlags)Enum.Parse(typeof(PkiCertificateAuthorityFlags), sr.Properties["flags"][0].ToString() ?? "");
         }
 
-
         private static string? ParseDnsHostname(SearchResult sr)
         {
             if (!sr.Properties.Contains("dnshostname"))
@@ -337,7 +192,6 @@ namespace CAService
 
             return sr.Properties["dnshostname"][0].ToString();
         }
-
 
         private static ActiveDirectorySecurity? ParseSecurityDescriptor(SearchResult sr)
         {
@@ -368,34 +222,20 @@ namespace CAService
             return certs;
         }
 
-        private List<string>? ParseCertificateTemplate(SearchResult sr)
-        {
-            if (!sr.Properties.Contains("certificatetemplates"))
-                return null;
-
-            var templates = new List<string>();
-            foreach (var template in sr.Properties["certificatetemplates"])
-            {
-                templates.Add($"{template}");
-            }
-
-            return templates;
-        }
-
-        private msPKICertificateNameFlag? ParsePkiCertificateNameFlag(SearchResult sr)
+        private MsPKICertificateNameFlag? ParsePkiCertificateNameFlag(SearchResult sr)
         {
             if (!sr.Properties.Contains("mspki-enrollment-flag"))
                 return null;
 
-            return ParseIntToEnum<msPKICertificateNameFlag>(sr.Properties["mspki-certificate-name-flag"][0].ToString() ?? "");
+            return ParseIntToEnum<MsPKICertificateNameFlag>(sr.Properties["mspki-certificate-name-flag"][0].ToString() ?? "");
         }
 
-        private msPKIEnrollmentFlag? ParsePkiEnrollmentFlag(SearchResult sr)
+        private MsPKIEnrollmentFlag? ParsePkiEnrollmentFlag(SearchResult sr)
         {
             if (!sr.Properties.Contains("mspki-enrollment-flag"))
                 return null;
 
-            return ParseUIntToEnum<msPKIEnrollmentFlag>(sr.Properties["mspki-enrollment-flag"][0].ToString() ?? "");
+            return ParseUIntToEnum<MsPKIEnrollmentFlag>(sr.Properties["mspki-enrollment-flag"][0].ToString() ?? "");
         }
 
         private static string? ParseDisplayName(SearchResult sr)
@@ -412,14 +252,6 @@ namespace CAService
                 return null;
 
             return sr.Properties["name"][0].ToString();
-        }
-
-        private static string? ParseSamAccountName(SearchResult sr)
-        {
-            if (!sr.Properties.Contains("samaccountname"))
-                return null;
-
-            return sr.Properties["samaccountname"][0].ToString();
         }
 
         public static string? GetDomainFromDN(string? dn)
@@ -452,14 +284,6 @@ namespace CAService
             return GetDomainFromDN(sr.Properties["distinguishedname"][0].ToString());
         }
 
-        private static string? ParseDistinguishedName(SearchResult sr)
-        {
-            if (!sr.Properties.Contains("distinguishedname"))
-                return null;
-
-            return sr.Properties["distinguishedname"][0].ToString();
-        }
-
         private static Guid? ParseGuid(SearchResult sr)
         {
             if (!sr.Properties.Contains("objectguid"))
@@ -473,8 +297,7 @@ namespace CAService
             if (!sr.Properties.Contains("mspki-template-schema-version"))
                 return null;
 
-            var schemaVersion = 0;
-            int.TryParse(sr.Properties["mspki-template-schema-version"][0].ToString(), out schemaVersion);
+            int.TryParse(sr.Properties["mspki-template-schema-version"][0].ToString(), out int schemaVersion);
             return schemaVersion;
         }
 
