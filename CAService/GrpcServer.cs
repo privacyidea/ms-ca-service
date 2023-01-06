@@ -88,6 +88,11 @@ namespace CAService
                 }
 
                 var caCertCandidates = GetCertificateByThumbprint(caCertThumb, StoreName.Root);
+                if (caCertCandidates.Count == 0)
+                {
+                    _logger.Error($"Unable to find CA cert with thumbprint '{caCertThumb}' in cert store 'root'.");
+                    return;
+                }
                 X509Certificate2? caCert = caCertCandidates[0];
                 string caCertPEM = GetPublicKeyPEM(caCert);
 
@@ -100,6 +105,11 @@ namespace CAService
                 }
 
                 var serverCertCandidates = GetCertificateByThumbprint(serverCertThumb, StoreName.My);
+                if (serverCertCandidates.Count == 0)
+                {
+                    _logger.Error($"Unable to find server cert with thumbprint '{serverCertThumb}' in cert store 'personal'.");
+                    return;
+                }
                 X509Certificate2? serverCert = serverCertCandidates[0];
 
                 // The server certificate need to contain the private key
