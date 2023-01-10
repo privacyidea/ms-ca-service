@@ -5,7 +5,7 @@
 	<?include $(sys.CURRENTDIR)\Include.wxi?>
 
 	<Product Id="{09FECD77-C986-404D-904E-4901581A3451}"
-			 Name="PrivacyIDEA CA Service"
+			 Name="PrivacyIDEA CA Service $(var.Version)"
 			 Language="1033"
 			 Version="1.0.0.0"
 			 Manufacturer="$(var.Publisher)"
