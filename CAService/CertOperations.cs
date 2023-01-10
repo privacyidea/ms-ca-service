@@ -1,9 +1,6 @@
 ﻿using CERTADMINLib;
 using CERTCLILib;
 using CERTENROLLLib;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Policy;
 
 namespace CAService
 {
@@ -117,7 +114,7 @@ namespace CAService
             return requestStr;
         }
 
-        internal void RevokeCertificate(string caName, string serialNumber, int reason, DateTime revocationTime)
+        public void RevokeCertificate(string caName, string serialNumber, int reason, DateTime revocationTime)
         {
             CCertAdmin certAdmin = new();
             certAdmin.RevokeCertificate(caName, serialNumber, reason, revocationTime);

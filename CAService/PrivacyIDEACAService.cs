@@ -1,4 +1,5 @@
 using Grpc.Core;
+using Grpc.Core.Logging;
 
 namespace CAService;
 
@@ -11,7 +12,7 @@ public class PrivacyIDEACAService : BackgroundService
     {
         _logger = new(logger);
         _logger.LogEnabled = Settings.GetBool("debug_log", _logger);
-        _logger.Log($"Setting debug_log to {_logger.LogEnabled}");
+        GrpcEnvironment.SetLogger(new TextWriterLogger(new TextWriterImpl(_logger)));
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

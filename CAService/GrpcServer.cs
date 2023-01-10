@@ -1,6 +1,5 @@
 ﻿using Grpc;
 using Grpc.Core;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -8,32 +7,6 @@ using static Grpc.CAService;
 
 namespace CAService
 {
-    internal class GrpcTraceListener : TraceListener
-    {
-        private readonly LogWrapper _logger;
-
-        public GrpcTraceListener(LogWrapper logger)
-        {
-            _logger = logger;
-        }
-
-        public override void Write(string? message)
-        {
-            if (message is not null)
-            {
-                _logger.Log($"gRPC trace: {message}");
-            }
-        }
-
-        public override void WriteLine(string? message)
-        {
-            if (message is not null)
-            {
-                _logger.Log($"gRPC trace: {message}");
-            }
-        }
-    }
-
     internal class GrpcServer : CAServiceBase
     {
         private Server? _server;
@@ -112,7 +85,7 @@ namespace CAService
                 }
                 X509Certificate2? serverCert = serverCertCandidates[0];
 
-                // The server certificate need to contain the private key
+                // The server certificate needs to contain the private key
                 if (!serverCert.HasPrivateKey)
                 {
                     _logger.Log("Server certificate does not contain the private key or the private key can not be used. " +
@@ -201,7 +174,7 @@ namespace CAService
             if (string.IsNullOrEmpty(request.CaName) || string.IsNullOrEmpty(request.SerialNumber))
             {
                 string errorMsg = "Missing CA Name or Serial!";
-                _logger.Error("GetCertificateValidity error: {errorMsg}");
+                _logger.Error($"GetCertificateValidity error: {errorMsg}");
                 reply.Status = StatusGenericError(errorMsg);
                 return Task.FromResult(reply);
             }
@@ -213,7 +186,7 @@ namespace CAService
             }
             catch (COMException comex)
             {
-                _logger.Error("IsValidCertificate encountered a COMException:\n{comex.StackTrace}");
+                _logger.Error($"IsValidCertificate encountered a COMException:\n{comex.Message}, Code: {comex.ErrorCode}\n{comex.StackTrace}");
                 reply.Status.Code = comex.ErrorCode;
                 reply.Status.Message = comex.Message;
                 return Task.FromResult(reply);
@@ -280,7 +253,7 @@ namespace CAService
             }
             catch (COMException comex)
             {
-                _logger.Error($"RevokeCertificate encountered a COMException:\n{comex.StackTrace}");
+                _logger.Error($"RevokeCertificate encountered a COMException:\n{comex.Message}, Code: {comex.ErrorCode}\n{comex.StackTrace}");
                 reply.Status.Code = comex.ErrorCode;
                 reply.Status.Message = comex.Message;
                 return Task.FromResult(reply);
@@ -330,7 +303,7 @@ namespace CAService
             }
             catch (Exception ex)
             {
-                _logger.Error($"GetCertificateTemplates encountered an error:\n{ex.StackTrace}");
+                _logger.Error($"GetCertificateTemplates encountered an error:\n{ex.Message}\n{ex.StackTrace}");
                 reply.Status.Code = 1;
                 reply.Status.Message = ex.Message;
                 return Task.FromResult(reply);
@@ -360,7 +333,7 @@ namespace CAService
             }
             catch (Exception ex)
             {
-                _logger.Error($"GetEnterpriseCAs encountered an error:\n{ex.StackTrace}");
+                _logger.Error($"GetEnterpriseCAs encountered an error:\n{ex.Message}\n{ex.StackTrace}");
                 reply.Status.Code = 1;
                 reply.Status.Message = ex.Message;
                 return Task.FromResult(reply);
@@ -400,14 +373,14 @@ namespace CAService
             }
             catch (COMException comex)
             {
-                _logger.Error($"DownloadCert encountered a COMException:\n{comex.StackTrace}");
+                _logger.Error($"DownloadCert encountered a COMException:\n{comex.Message}, Code: {comex.ErrorCode}\n{comex.StackTrace}");
                 reply.Status.Code = comex.ErrorCode;
                 reply.Status.Message = comex.Message;
                 return Task.FromResult(reply);
             }
             catch (Exception ex)
             {
-                _logger.Error($"DownloadCert encountered an error:\n{ex.StackTrace}");
+                _logger.Error($"DownloadCert encountered an error:\n{ex.Message}\n{ex.StackTrace}");
                 reply.Status.Code = 1;
                 reply.Status.Message = ex.Message;
                 return Task.FromResult(reply);
@@ -444,14 +417,14 @@ namespace CAService
             }
             catch (COMException comex)
             {
-                _logger.Error($"GetRequestStatus encountered a COMException:\n{comex.StackTrace}");
+                _logger.Error($"GetRequestStatus encountered a COMException:\n{comex.Message}, Code: {comex.ErrorCode}\n{comex.StackTrace}");
                 reply.Status.Code = comex.ErrorCode;
                 reply.Status.Message = comex.Message;
                 return Task.FromResult(reply);
             }
             catch (Exception ex)
             {
-                _logger.Error($"GetRequestStatus encountered an error:\n{ex.StackTrace}");
+                _logger.Error($"GetRequestStatus encountered an error:\n{ex.Message}\n{ex.StackTrace}");
                 reply.Status.Code = 1;
                 reply.Status.Message = ex.Message;
                 return Task.FromResult(reply);
@@ -501,7 +474,7 @@ namespace CAService
             }
             catch (COMException comex)
             {
-                _logger.Error($"SendCertificateRequest encountered a COMException:\n{comex.StackTrace}");
+                _logger.Error($"SendCertificateRequest encountered a COMException:\n{comex.Message}, Code: {comex.ErrorCode}\n{comex.StackTrace}");
                 _logger.Error($"Error code:{comex.ErrorCode}, error message: {comex.Message}");
                 reply.Status.Code = comex.ErrorCode;
                 reply.Status.Message = comex.Message;
@@ -509,7 +482,7 @@ namespace CAService
             }
             catch (Exception ex)
             {
-                _logger.Error($"SendCertificateRequest encountered an error:\n{ex.StackTrace}");
+                _logger.Error($"SendCertificateRequest encountered an error:\n{ex.Message}\n{ex.StackTrace}");
                 reply.Status.Code = 1;
                 reply.Status.Message = ex.Message;
                 return Task.FromResult(reply);

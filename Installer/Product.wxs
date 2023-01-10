@@ -44,7 +44,7 @@
 			<ComponentRef Id="INSTALLFOLDER_Permission"/>
 		</Feature>
 
-
+		<!--Properties, search existing in registry and prefill -->
 		<Property Id="PORT">
 			<RegistrySearch Id="SearchPort" Root="HKLM" Key="SOFTWARE\$(var.Publisher)\$(var.ProductName)"
 							Name="port" Win64="yes" Type="raw"/>
@@ -57,7 +57,19 @@
 			<RegistrySearch Id="SearchUseUnsafeConnection" Root="HKLM" Key="SOFTWARE\$(var.Publisher)\$(var.ProductName)"
 							Name="use_unsafe_connection" Win64="yes" Type="raw"/>
 		</Property>
-
+		<Property Id="CA_CERT_THUMBPRINT">
+			<RegistrySearch Id="SearchCaCertThumbprint" Root="HKLM" Key="SOFTWARE\$(var.Publisher)\$(var.ProductName)"
+							Name="ca_cert_thumbprint" Win64="yes" Type="raw"/>
+		</Property>
+		<Property Id="SERVER_CERT_THUMBPRINT">
+			<RegistrySearch Id="SearchServerCertThumbprint" Root="HKLM" Key="SOFTWARE\$(var.Publisher)\$(var.ProductName)"
+							Name="server_cert_thumbprint" Win64="yes" Type="raw"/>
+		</Property>
+		<Property Id="ENROLLMENT_AGENT_CERT_THUMBPRINT">
+			<RegistrySearch Id="SearchEnrollmentAgentCertThumbprint" Root="HKLM" Key="SOFTWARE\$(var.Publisher)\$(var.ProductName)"
+							Name="enrollment_agent_cert_thumbprint" Win64="yes" Type="raw"/>
+		</Property>
+		
 		<!-- Set Logos and License -->
 		<WixVariable Id="WixUIDialogBmp" Value="$(var.ProjectDir)\Assets\Dialog.bmp"/>
 		<WixVariable Id="WixUIBannerBmp" Value="$(var.ProjectDir)\Assets\Banner.bmp"/>
@@ -111,9 +123,9 @@
 					<RegistryValue Name='port'								Type='string' Value='[PORT]'/>
 					<RegistryValue Name='use_unsafe_connection'				Type='string' Value='[USE_UNSAFE_CONNECTION]'/>
 					<RegistryValue Name='debug_log'							Type='string' Value='[DEBUGLOG]'/>
-					<RegistryValue Name='server_cert_thumbprint'			Type='string' Value=''/>
-					<RegistryValue Name='enrollment_agent_cert_thumbprint'	Type='string' Value=''/>
-					<RegistryValue Name='ca_cert_thumbprint'				Type='string' Value=''/>
+					<RegistryValue Name='server_cert_thumbprint'			Type='string' Value='[SERVER_CERT_THUMBPRINT]'/>
+					<RegistryValue Name='enrollment_agent_cert_thumbprint'	Type='string' Value='[ENROLLMENT_AGENT_CERT_THUMBPRINT]'/>
+					<RegistryValue Name='ca_cert_thumbprint'				Type='string' Value='[CA_CERT_THUMBPRINT]'/>
 					<RegistryValue Name='force_client_auth'					Type='string' Value='0'/>
 				</RegistryKey>
 			</Component>
