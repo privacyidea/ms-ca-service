@@ -14,7 +14,7 @@ namespace CAService
 
         public override void Write(string? value)
         {
-            if (!string.IsNullOrEmpty(value))
+            if (!string.IsNullOrEmpty(value) && value != Environment.NewLine)
             {
                 _logger.Log(value);
             }

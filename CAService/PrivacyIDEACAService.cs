@@ -26,7 +26,7 @@ public class PrivacyIDEACAService : BackgroundService
         {
             _logger.Error($"Unable to start gRPC server: {e.Message}");
         }
-        _logger.Log($"Worker starting at: {DateTimeOffset.Now} in thread {Environment.CurrentManagedThreadId}");
+        _logger.Log($"PrivacyIDEA MS CA Service starting at: {DateTimeOffset.Now} in thread {Environment.CurrentManagedThreadId}");
         while (!stoppingToken.IsCancellationRequested)
         {
             await Task.Delay(1000, stoppingToken);

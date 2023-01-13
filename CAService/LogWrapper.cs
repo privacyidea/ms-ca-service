@@ -12,7 +12,7 @@
 
         public void Log(string? message)
         {
-            if (LogEnabled && message is not null)
+            if (LogEnabled && !string.IsNullOrEmpty(message) && message != Environment.NewLine)
             {
                 _logger.LogInformation(message);
             }
@@ -20,7 +20,7 @@
 
         public void Error(string? message)
         {
-            if (LogEnabled && message is not null)
+            if (LogEnabled && !string.IsNullOrEmpty(message) && message != Environment.NewLine)
             {
                 _logger.LogError(message);
             }
