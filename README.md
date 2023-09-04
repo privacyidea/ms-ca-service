@@ -1,7 +1,7 @@
 # **WORK IN PROGRESS**
 
 ## Requirements
-.NET 6.0
+[ASP .NET Core 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-6.0.21-windows-x64-installer?cid=getdotnetcore)
 
 ## privacyIDEA CA Service for Windows
 This is a Windows service running a gRPC server to serve requests from privacyIDEA.
