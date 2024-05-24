@@ -98,9 +98,12 @@ namespace CAService
             // Get the signer certificate for the container and create the request
             CSignerCertificate signer = new();
             string? requestStr = null;
+            bool enrollAgentCertUseMachineStore = Settings.GetBool("enrollment_agent_cert_machine_store");
+            string store = enrollAgentCertUseMachineStore ? "machine store" : "user store";
+            _logger.Log($"Looking up EnrollmentAgent cert in {store}.");
             if (Settings.GetString("enrollment_agent_cert_thumbprint", _logger) is string s)
             {
-                signer.Initialize(true, X509PrivateKeyVerify.VerifyNone, EncodingType.XCN_CRYPT_STRING_HEXRAW, s);
+                signer.Initialize(enrollAgentCertUseMachineStore, X509PrivateKeyVerify.VerifyNone, EncodingType.XCN_CRYPT_STRING_HEXRAW, s);
                 objCmc.SignerCertificate = signer;
                 objCmc.Encode();
                 requestStr = objCmc.RawData;

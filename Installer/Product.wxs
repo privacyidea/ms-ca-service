@@ -7,7 +7,7 @@
 	<Product Id="{09FECD77-C986-404D-904E-4901581A3451}"
 			 Name="PrivacyIDEA CA Service $(var.Version)"
 			 Language="1033"
-			 Version="1.0.0.0"
+			 Version="$(var.Version)"
 			 Manufacturer="$(var.Publisher)"
 			 UpgradeCode="5b7d6c93-b99e-4cf3-8718-8e2a02b4bd7d">
 
@@ -35,7 +35,7 @@
 		<Property Id="ARPURLINFOABOUT" Value="$(var.AppURLInfoAbout)"/>
 		<Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
 		<Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />
-
+		
 		<!-- FEATURE -->
 		<Feature Id="ProductFeature" Title="Installer" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
@@ -101,7 +101,7 @@
 	<Fragment>
 		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
 			<Component Id="ServiceComponent" Win64="yes">
-				<File Id="PrivacyIDEACAServiceEXE" Name="CAService.exe" DiskId="1" Source="..\CAService\bin\Release\net6.0-windows\win-x64\publish\CAService.exe" KeyPath="yes"/>
+				<File Id="PrivacyIDEACAServiceEXE" Name="CAService.exe" DiskId="1" Source="..\CAService\bin\x64\Release\net6.0-windows\win-x64\CAService.exe" KeyPath="yes"/>
 				<ServiceInstall
 				  Id="ServiceInstaller"
 				  Type="ownProcess"
@@ -120,13 +120,15 @@
 		<ComponentGroup Id="RegistryEntries" Directory="INSTALLFOLDER">
 			<Component Id="RegistryEntries" Win64="yes">
 				<RegistryKey Root='HKLM' Key='SOFTWARE\$(var.Publisher)\$(var.ProductName)' ForceCreateOnInstall='yes'>
-					<RegistryValue Name='port'								Type='string' Value='[PORT]'/>
-					<RegistryValue Name='use_unsafe_connection'				Type='string' Value='[USE_UNSAFE_CONNECTION]'/>
-					<RegistryValue Name='debug_log'							Type='string' Value='[DEBUGLOG]'/>
-					<RegistryValue Name='server_cert_thumbprint'			Type='string' Value='[SERVER_CERT_THUMBPRINT]'/>
-					<RegistryValue Name='enrollment_agent_cert_thumbprint'	Type='string' Value='[ENROLLMENT_AGENT_CERT_THUMBPRINT]'/>
-					<RegistryValue Name='ca_cert_thumbprint'				Type='string' Value='[CA_CERT_THUMBPRINT]'/>
-					<RegistryValue Name='force_client_auth'					Type='string' Value='0'/>
+					<RegistryValue Name='port'									Type='string' Value='[PORT]'/>
+					<RegistryValue Name='use_unsafe_connection'					Type='string' Value='[USE_UNSAFE_CONNECTION]'/>
+					<RegistryValue Name='debug_log'								Type='string' Value='[DEBUGLOG]'/>
+					<RegistryValue Name='server_cert_thumbprint'				Type='string' Value='[SERVER_CERT_THUMBPRINT]'/>
+					<RegistryValue Name='enrollment_agent_cert_thumbprint'		Type='string' Value='[ENROLLMENT_AGENT_CERT_THUMBPRINT]'/>
+					<RegistryValue Name='ca_cert_thumbprint'					Type='string' Value='[CA_CERT_THUMBPRINT]'/>
+					<RegistryValue Name='force_client_auth'						Type='string' Value='0'/>
+					<RegistryValue Name='enrollment_agent_cert_machine_store'	Type='string' Value='0'/>
+					
 				</RegistryKey>
 			</Component>
 		</ComponentGroup>
