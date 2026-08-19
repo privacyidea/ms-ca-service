@@ -1,5 +1,3 @@
-# **WORK IN PROGRESS**
-
 ## Requirements
 [ASP .NET Core 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-6.0.21-windows-x64-installer?cid=getdotnetcore)
 
